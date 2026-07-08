@@ -9,6 +9,6 @@ type Ad struct {
 	Price        float64   `json:"price"`
 	Category     string    `json:"category"`
 	ContactPhone string    `json:"contact_phone"`
-	CreateAt     time.Time `json:"create_at"`
-	UpdateAt     time.Time `json:"update_at"`
+	CreatedAt    time.Time `json:"create_at"`
+	UpdatedAt    time.Time `json:"update_at"`
 }
