@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	domainErrors "github.com/KotelCatherine/mini-avito/internal/domain/errors"
 	"github.com/KotelCatherine/mini-avito/internal/model"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -59,7 +60,7 @@ func (repo *PostgresAdsRepository) GetById(ctx context.Context, id string) (*mod
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("ad not found: %w", err)
+			return nil, domainErrors.NewNotFoundError("ad", id)
 		}
 		return nil, fmt.Errorf("query row: %w", err)
 	}
@@ -88,7 +89,7 @@ func (repo *PostgresAdsRepository) Update(ctx context.Context, ad *model.Ad) err
 	}
 
 	if result.RowsAffected() == 0 {
-		return fmt.Errorf("ad not found")
+		return domainErrors.ErrAdNotFound
 	}
 
 	return nil
@@ -106,7 +107,7 @@ func (repo *PostgresAdsRepository) Delete(ctx context.Context, id string) error 
 	}
 
 	if result.RowsAffected() == 0 {
-		return fmt.Errorf("ad not found")
+		return domainErrors.NewNotFoundError("ad", id)
 	}
 
 	return nil

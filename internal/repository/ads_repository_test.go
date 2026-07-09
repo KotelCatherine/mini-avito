@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
 
+	domainErrors "github.com/KotelCatherine/mini-avito/internal/domain/errors"
 	"github.com/KotelCatherine/mini-avito/internal/model"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -38,6 +40,39 @@ func TestPostgresAdsRepository_Create(t *testing.T) {
 
 	if retrieved.Title != ad.Title {
 		t.Errorf("Expected title %s, got %s", ad.Title, retrieved.Title)
+	}
+
+}
+
+func TestPostgresAdsRepository_GetById_NotFound(t *testing.T) {
+
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, "postgres://avito_user:postgres@localhost:5432/avito?sslmode=disable")
+	if err != nil {
+		t.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer pool.Close()
+
+	repo := NewPosgresAdsRepository(pool)
+
+	nonExistingId := "550e8400-e29b-41d4-a716-446655440000"
+
+	_, err = repo.GetById(ctx, nonExistingId)
+
+	var notFoundErr *domainErrors.NotFoundError
+	if !errors.As(err, &notFoundErr) {
+		t.Errorf("Expected NotFoundError, got %T: %v", err, err)
+	}
+
+	if !errors.Is(err, domainErrors.ErrNotFound) {
+		t.Errorf("Expected error to be ErrNotFound, got %v:", err)
+	}
+
+	if notFoundErr.EntityType != "ad" {
+		t.Errorf("Expected EntityType 'ad', got '%s'", notFoundErr.EntityType)
+	}
+	if notFoundErr.ID != nonExistingId {
+		t.Errorf("Expected ID %s, got '%s'", nonExistingId, notFoundErr.ID)
 	}
 
 }
